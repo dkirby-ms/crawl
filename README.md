@@ -48,7 +48,7 @@ A fork of [crawl](https://github.com/crawl/crawl.git) to explore the feasibility
     pip install virtualenv
     python3 -m virtualenv -p python3 webserver/venv
     . ./webserver/venv/bin/activate
-    pip install -r webserver/requirements/dev.py3.txt
+    pip install -r webserver/requirements/dev.py3.txtW
     pip install azure-identity azure-keyvault-secrets msal
     ```
 
@@ -60,11 +60,9 @@ A fork of [crawl](https://github.com/crawl/crawl.git) to explore the feasibility
 
 ## Problems to solve
 
-    * "password" for user registration
+    * client.js hardcoded logout url and redirect
 
-    * enforce unique crawl handles through B2C graph calls at registration time
-
-    * oauth attack vectors
+    * oauth attack vectors check
 
     * comparison to crawl origin and feasibility of PR
 
