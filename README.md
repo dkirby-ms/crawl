@@ -48,7 +48,7 @@ A fork of [crawl](https://github.com/crawl/crawl.git) to explore the feasibility
     pip install virtualenv
     python3 -m virtualenv -p python3 webserver/venv
     . ./webserver/venv/bin/activate
-    pip install -r webserver/requirements/dev.py3.txtW
+    pip install -r webserver/requirements/dev.py3.txt
     pip install azure-identity azure-keyvault-secrets msal
     ```
 
