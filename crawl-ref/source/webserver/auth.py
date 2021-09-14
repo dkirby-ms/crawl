@@ -22,10 +22,12 @@ def purge_login_tokens():
         if datetime.datetime.now() > login_tokens[token]:
             del login_tokens[token]
 
+
 def purge_login_tokens_timeout():
     purge_login_tokens()
     IOLoop.current().add_timeout(time.time() + 60 * 60 * 1000,
                                  purge_login_tokens_timeout)
+                                 
 
 def log_in_as_user(request, username):
     token = rand.getrandbits(128)
