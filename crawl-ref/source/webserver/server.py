@@ -86,7 +86,8 @@ class AuthorizeHandler(tornado.web.RequestHandler):
             session["user"] = result.get("id_token_claims")
             aad_b2c._save_cache(cache)
             self.redirect("/")
-        except ValueError:  # Usually caused by CSRF
+        except Exception:  # Usually caused by CSRF
+            logging.error("Authorization error on OAuth redirect: " + Exception + ", " + Exception.with_traceback())
             pass  # Simply ignore them
 
 class LogoutHandler(tornado.web.RequestHandler):
