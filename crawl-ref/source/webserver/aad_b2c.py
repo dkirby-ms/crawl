@@ -17,8 +17,10 @@ CLIENT_SECRET = os.getenv("B2C_CLIENT_SECRET") # Placeholder - for use ONLY duri
 # like Azure Key Vault. Or, use an environment variable as described in Flask's documentation:
 # https://flask.palletsprojects.com/en/1.1.x/config/#configuring-from-environment-variables
 # CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-# if not CLIENT_SECRET:
-#     raise ValueError("Need to define CLIENT_SECRET environment variable")
+if not CLIENT_ID:
+    raise ValueError("Need to define B2C_CLIENT_ID environment variable")
+if not CLIENT_SECRET:
+    raise ValueError("Need to define B2C_CLIENT_SECRET environment variable")
 
 AUTHORITY = authority_template.format(
     tenant=b2c_tenant, user_flow=signupsignin_user_flow)
