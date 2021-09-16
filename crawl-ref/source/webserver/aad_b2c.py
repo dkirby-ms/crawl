@@ -28,6 +28,8 @@ B2C_PROFILE_AUTHORITY = authority_template.format(
     tenant=b2c_tenant, user_flow=editprofile_user_flow)
 
 URLBASE = os.getenv("URLBASE")
+if not URLBASE:
+    raise ValueError("Need to define URLBASE environment variable")
 REDIRECT_PATH = "/authorize"  # Used for forming an absolute URL to your redirect URI.
                               # The absolute URL must match the redirect URI you set
                               # in the app's registration in the Azure portal.
