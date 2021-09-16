@@ -34,6 +34,7 @@ import cmd
 from azure.keyvault.secrets import SecretClient
 from azure.identity import ClientSecretCredential
 
+aadSession = dict()
 session = dict() # this is a stub for real session management. 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -43,7 +44,7 @@ class MainHandler(tornado.web.RequestHandler):
             protocol = "wss://"
         else:
             protocol = "ws://"
-
+        
         recovery_token = None
         recovery_token_error = None
 
@@ -55,15 +56,19 @@ class MainHandler(tornado.web.RequestHandler):
         
         # AAD_B2C addition and edits
         if config.use_oauth:
-            if "user" in session: # this doesnt really work because first user who logs in will set it
-                idtoken = session["user"]
-                registerOrSigninOauthUser(self, idtoken)
-                username = idtoken["extension_Crawlhandle"]
-            session["flow"] = aad_b2c._build_auth_code_flow(scopes=aad_b2c.SCOPE)
+            # TODO: some check for an existing idtoken that we can lookup in aadSession dict
+            # if <idtoken> in aadSession
+
+            # TODO: if "user" in session: # this doesnt really work because first user who logs in will set it
+            #     idtoken = session["user"]
+            #     registerOrSigninOauthUser(self, idtoken)
+            #     username = idtoken["extension_Crawlhandle"]
+            
+            aadAuth = aad_b2c._build_auth_code_flow(scopes=aad_b2c.SCOPE)
             self.render("client.html", socket_server = protocol + host + "/socket",
                 username = None, config = config,
                 reset_token = recovery_token, reset_token_error = recovery_token_error,
-                auth_url = session["flow"]["auth_uri"], version=msal.__version__)
+                auth_url = aadAuth["auth_uri"], version=msal.__version__)
         else:
             self.render("client.html", socket_server = protocol + host + "/socket",
                 username = None, config = config,
@@ -83,6 +88,8 @@ class AuthorizeHandler(tornado.web.RequestHandler):
                 session["flow"], convert(self.request.arguments))
             # if "error" in result:
             #     return render_template("auth_error.html", result=result)
+            
+            # TODO: store id token claims in user session based on unique key
             session["user"] = result.get("id_token_claims")
             aad_b2c._save_cache(cache)
             self.redirect("/")
