@@ -34,7 +34,7 @@ import cmd
 from azure.keyvault.secrets import SecretClient
 from azure.identity import ClientSecretCredential
 
-session = dict()
+session = dict() # this is a stub for real session management. 
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -55,7 +55,7 @@ class MainHandler(tornado.web.RequestHandler):
         
         # AAD_B2C addition and edits
         if config.use_oauth:
-            if "user" in session:
+            if "user" in session: # this doesnt really work because first user who logs in will set it
                 idtoken = session["user"]
                 registerOrSigninOauthUser(self, idtoken)
                 username = idtoken["extension_Crawlhandle"]
