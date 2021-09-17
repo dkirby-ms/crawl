@@ -3,8 +3,7 @@ import msal
 import requests
 import tornado
 
-session = dict()
-
+# read these from env instead of hard code
 b2c_tenant = "ckzcrawl"
 signupsignin_user_flow = "B2C_1_signupsignin"
 editprofile_user_flow = "B2C_1_profileediting1"
@@ -26,9 +25,7 @@ B2C_PROFILE_AUTHORITY = authority_template.format(
 URLBASE = os.getenv("URLBASE")
 if not URLBASE:
     raise ValueError("Need to define URLBASE environment variable")
-REDIRECT_PATH = "/authorize"  # Used for forming an absolute URL to your redirect URI.
-                              # The absolute URL must match the redirect URI you set
-                              # in the app's registration in the Azure portal.
+REDIRECT_PATH = "/authorize"
 
 # This is the API resource endpoint
 ENDPOINT = '' # Application ID URI of app registration in Azure portal

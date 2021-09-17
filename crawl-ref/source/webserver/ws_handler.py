@@ -7,7 +7,6 @@ import signal
 import subprocess
 import time
 import zlib
-import urllib.parse
 
 import tornado.ioloop
 import tornado.template
@@ -628,9 +627,6 @@ class CrawlWebSocket(tornado.websocket.WebSocketHandler):
             self.send_message("login_fail")
 
     def token_login(self, cookie):
-        # AAD B2C support - cookie is coming in without URL encoding so we are re-adding it. 
-        if config.use_oauth:
-            cookie = urllib.parse.quote(cookie)
         username, ok = auth.check_login_cookie(cookie)
         if ok:
             auth.forget_login_cookie(cookie)

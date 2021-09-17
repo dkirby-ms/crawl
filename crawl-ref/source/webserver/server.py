@@ -31,11 +31,12 @@ import aad_b2c
 import json
 import urllib.parse
 import cmd
+from datetime import datetime
 from azure.keyvault.secrets import SecretClient
 from azure.identity import ClientSecretCredential
 
-aadSession = dict()
-session = dict() # this is a stub for real session management. 
+aadSessionTokens = {} # redis or something
+aadFlow = {}
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -56,19 +57,28 @@ class MainHandler(tornado.web.RequestHandler):
         
         # AAD_B2C addition and edits
         if config.use_oauth:
-            # TODO: some check for an existing idtoken that we can lookup in aadSession dict
-            # if <idtoken> in aadSession
-
-            # TODO: if "user" in session: # this doesnt really work because first user who logs in will set it
-            #     idtoken = session["user"]
-            #     registerOrSigninOauthUser(self, idtoken)
-            #     username = idtoken["extension_Crawlhandle"]
-            
-            aadAuth = aad_b2c._build_auth_code_flow(scopes=aad_b2c.SCOPE)
-            self.render("client.html", socket_server = protocol + host + "/socket",
-                username = None, config = config,
-                reset_token = recovery_token, reset_token_error = recovery_token_error,
-                auth_url = aadAuth["auth_uri"], version=msal.__version__)
+            # logging.info(self.cookies['_xsrf'].value)
+            getFlow = False
+            flow = None
+            if '_xsrf' not in self.cookies:
+                getFlow = True
+            elif self.cookies['_xsrf'].value not in aadSessionTokens: # Replace with check of non-expired token but is this necesary or will AAD handle?
+                getFlow = True
+            if getFlow:
+                # aadSession[self.cookies['_xsrf']] = { "flow" : aad_b2c._build_auth_code_flow(scopes=aad_b2c.SCOPE) }
+                flow = aad_b2c._build_auth_code_flow(scopes=aad_b2c.SCOPE)
+                aadFlow[flow["state"]] = flow
+                self.render("client.html", socket_server = protocol + host + "/socket",
+                    username = None, config = config,
+                    reset_token = recovery_token, reset_token_error = recovery_token_error,
+                    auth_url = flow["auth_uri"], version=msal.__version__)
+            else:
+                username = aadSessionTokens[self.cookies['_xsrf'].value][0]
+                self.render("client.html", socket_server = protocol + host + "/socket",
+                    username = None, config = config,
+                    reset_token = recovery_token, reset_token_error = recovery_token_error,
+                    auth_url = "", version=msal.__version__)
+   
         else:
             self.render("client.html", socket_server = protocol + host + "/socket",
                 username = None, config = config,
@@ -78,6 +88,9 @@ class MainHandler(tornado.web.RequestHandler):
 class AuthorizeHandler(tornado.web.RequestHandler):
     def get(self):
         host = self.request.host
+
+        # logging.info(self.cookies['_xsrf'].value)
+        #aadSession[]
         if self.request.protocol == "https" or self.request.headers.get("x-forwarded-proto") == "https":
             protocol = "wss://"
         else:
@@ -85,17 +98,17 @@ class AuthorizeHandler(tornado.web.RequestHandler):
         try:
             cache = aad_b2c._load_cache()
             result = aad_b2c._build_msal_app(cache=cache).acquire_token_by_auth_code_flow(
-                session["flow"], convert(self.request.arguments))
+                aadFlow.pop(convert(self.request.arguments["state"])), convert(self.request.arguments))
             # if "error" in result:
             #     return render_template("auth_error.html", result=result)
             
-            # TODO: store id token claims in user session based on unique key
-            session["user"] = result.get("id_token_claims")
+            # aadSession[self.cookies['_xsrf'].value]["id_token_claims"] = result.get("id_token_claims")
+            registerOrSigninOauthUser(self, result.get("id_token_claims"))
             aad_b2c._save_cache(cache)
             self.redirect("/")
         except Exception:  # Usually caused by CSRF
             logging.error("Authorization error on OAuth redirect: " + Exception + ", " + Exception.with_traceback())
-            pass  # Simply ignore them
+            pass  # Add login to throw token error page
 
 class LogoutHandler(tornado.web.RequestHandler):
     def get(self):
@@ -104,20 +117,24 @@ class LogoutHandler(tornado.web.RequestHandler):
             protocol = "wss://"
         else:
             protocol = "ws://"
-        session.clear()
+        # session.clear() # Fix and correct for expiring tokens mapped to logged in user
         self.redirect("/")
 
-def registerOrSigninOauthUser(request, idtoken):
+def registerOrSigninOauthUser(handler, idtoken):
     if userdb.get_user_info(idtoken["extension_Crawlhandle"]) is not None:
         # sign in user
         logging.info("Signing in existing OAuth user")
     else:
         logging.info("Registering new OAuth user")
         userdb.register_user(idtoken["extension_Crawlhandle"], lookupPassword(), idtoken["emails"][0]) # DK - need to solve for passwords
-    cookie = auth.log_in_as_user(request, idtoken["extension_Crawlhandle"])
+    # cookie = auth.log_in_as_user(handler, idtoken["extension_Crawlhandle"])
+    # cookie = urllib.parse.unquote(cookie)
+    # logging.info("Cookie: " + cookie)
+    aadSessionTokens[convert(handler.xsrf_token)] = ( idtoken["extension_Crawlhandle"], datetime.now() )
+    handler.username = idtoken["extension_Crawlhandle"]
     usersocket = find_user_sockets(idtoken["extension_Crawlhandle"])
     for socket in usersocket:
-        socket.send_message("login_cookie", cookie = cookie, expires = config.login_token_lifetime)
+        socket.send_message("logged_in", cookie = cookie, expires = config.login_token_lifetime)
     
 def lookupPassword():
     keyVaultName = os.environ["KV_NAME"]

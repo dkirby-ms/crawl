@@ -1616,7 +1616,7 @@ function (exports, $, key_conversion, chat, comm) {
             {
                 window.onhashchange = hash_changed;
 
-                start_login();
+                // start_login(); // AADB2C - dont need to do this since we no longer use original token logins 
 
                 current_hash = null;
                 hash_changed();
