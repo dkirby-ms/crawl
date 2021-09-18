@@ -39,6 +39,12 @@ A fork of [crawl](https://github.com/crawl/crawl.git) to explore the feasibility
 * Set environment variables for AAD_B2C client id and secret.
 
     ```sh
+        # Env vars
+    export BASEURL="http://localhost:8080"
+    export B2C_TENANT="<your AADB2C tenant name>"
+    export SIGNUPSIGNUP_USER_FLOW="B2C_1_signupsignin (or your signup/signin flow name"
+
+    # Secret env vars
     export B2C_CLIENT_ID="<replace with client id of B2C application>"
     export B2C_CLIENT_SECRET="<replace with client secret of B2C application"
     export KV_CLIENT_ID="<replace with client id of SPN used for Keyvault authentication>"
