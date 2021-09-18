@@ -39,6 +39,7 @@ function (exports, $, key_conversion, chat, comm) {
     }
 
     function oauth_login() {
+        // TODO: how can we open a popup based on the b2c_auth endpoint then redirect back to parent?
         parent.window.opener($("oauth_login_link_anchor").attr('href'))
     }
 

@@ -88,8 +88,6 @@ class AuthorizeHandler(tornado.web.RequestHandler):
     def get(self):
         host = self.request.host
 
-        # logging.info(self.cookies['_xsrf'].value)
-        #aadSession[]
         if self.request.protocol == "https" or self.request.headers.get("x-forwarded-proto") == "https":
             protocol = "wss://"
         else:
