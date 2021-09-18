@@ -3,10 +3,8 @@ import msal
 import requests
 import tornado
 
-# read these from env instead of hard code
-b2c_tenant = "ckzcrawl"
-signupsignin_user_flow = "B2C_1_signupsignin"
-editprofile_user_flow = "B2C_1_profileediting1"
+b2c_tenant = os.getenv("B2C_TENANT")
+signupsignin_user_flow = os.getenv("B2C_1_signupsignin")
 
 authority_template = "https://{tenant}.b2clogin.com/{tenant}.onmicrosoft.com/{user_flow}"
 

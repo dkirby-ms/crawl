@@ -65,7 +65,6 @@ class MainHandler(tornado.web.RequestHandler):
             elif self.cookies['_xsrf'].value not in aadSessionTokens: # Replace with check of non-expired token but is this necesary or will AAD handle?
                 getFlow = True
             if getFlow:
-                # aadSession[self.cookies['_xsrf']] = { "flow" : aad_b2c._build_auth_code_flow(scopes=aad_b2c.SCOPE) }
                 flow = aad_b2c._build_auth_code_flow(scopes=aad_b2c.SCOPE)
                 aadFlow[flow["state"]] = flow
                 self.render("client.html", socket_server = protocol + host + "/socket",
