@@ -60,10 +60,6 @@ A fork of [crawl](https://github.com/crawl/crawl.git) to explore the feasibility
 
 ## Problems to solve
 
-    * client.js hardcoded logout url and redirect
+* Open auth in popup instead of parent.relocate()
 
-    * oauth attack vectors check
-
-    * comparison to crawl origin and feasibility of PR
-
-    * add additional IDPs (goog, fb)
+* finish session management rework
