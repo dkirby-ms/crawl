@@ -4,9 +4,15 @@ A fork of [crawl](https://github.com/crawl/crawl.git) to explore the feasibility
 
 ## Setup Azure Active Directory B2C environment
 
-* step 1
+* Deploy new AAD B2C tenant
 
-* step 2
+* Configure custom user attribute (str)"Crawlhandle"
+
+* Create new application and secret
+
+* Create Signup/signin user flow
+
+* For unique usernames, add API connector to Azure Function running [this](https://github.com/dkirby-ms/dkcrawl-uniqueusernames-b2c) Azure Function, edited as needed
 
 ## Setup VSCode/python dev environment
 
