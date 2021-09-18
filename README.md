@@ -42,7 +42,7 @@ A fork of [crawl](https://github.com/crawl/crawl.git) to explore the feasibility
         # Env vars
     export BASEURL="http://localhost:8080"
     export B2C_TENANT="<your AADB2C tenant name>"
-    export SIGNUPSIGNUP_USER_FLOW="B2C_1_signupsignin (or your signup/signin flow name"
+    export SIGNUPSIGNUP_USER_FLOW="B2C_1_signupsignin (or your signup/signin flow name)"
 
     # Secret env vars
     export B2C_CLIENT_ID="<replace with client id of B2C application>"
