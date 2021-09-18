@@ -4,9 +4,16 @@ import requests
 import tornado
 
 b2c_tenant = os.getenv("B2C_TENANT")
-signupsignin_user_flow = os.getenv("B2C_1_signupsignin")
-
+signupsignin_user_flow = os.getenv("SIGNUPSIGNUP_USER_FLOW")
+editprofile_user_flow = os.getenv("EDITPROFILE_USER_FLOW")
 authority_template = "https://{tenant}.b2clogin.com/{tenant}.onmicrosoft.com/{user_flow}"
+
+if not b2c_tenant:
+    raise ValueError("Need to define B2C_TENANT environment variable")
+if not signupsignin_user_flow:
+    raise ValueError("Need to define SIGNUPSIGNUP_USER_FLOW environment variable")
+if not editprofile_user_flow:
+    raise ValueError("Need to define EDITPROFILE_USER_FLOW environment variable")
 
 CLIENT_ID = os.getenv("B2C_CLIENT_ID") # Application (client) ID of app registration
 CLIENT_SECRET = os.getenv("B2C_CLIENT_SECRET") 
@@ -31,17 +38,15 @@ ENDPOINT = '' # Application ID URI of app registration in Azure portal
 # These are the scopes you've exposed in the web API app registration in the Azure portal
 SCOPE = []  # Example with two exposed scopes: ["demo.read", "demo.write"]
 
-# SESSION_TYPE = "filesystem"  # Specifies the token cache should be stored in server-side session - DaleK - this is pointless since we arent using flask-session
-
-def _load_cache():
+def _load_cache(handler):
     cache = msal.SerializableTokenCache()
-    if "token_cache" in session:
-        cache.deserialize(session["token_cache"])
+    if "token_cache" in handler.session:
+        cache.deserialize(handler.session["token_cache"])
     return cache
 
-def _save_cache(cache):
+def _save_cache(handler, cache):
     if cache.has_state_changed:
-        session["token_cache"] = cache.serialize()
+        handler.session["token_cache"] = cache.serialize()
 
 def _build_msal_app(cache=None, authority=None):
     return msal.ConfidentialClientApplication(

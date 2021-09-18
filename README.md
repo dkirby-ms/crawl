@@ -38,11 +38,12 @@ A fork of [crawl](https://github.com/crawl/crawl.git) to explore the feasibility
 
 * Set environment variables for AAD_B2C client id and secret.
 
-    ```sh
+    ```shell
     # Env vars
-    export BASEURL="http://localhost:8080"
+    export URLBASE="http://localhost:8080"
     export B2C_TENANT="<your AADB2C tenant name>"
     export SIGNUPSIGNUP_USER_FLOW="B2C_1_signupsignin (or your signup/signin flow name)"
+    export EDITPROFILE_USER_FLOW="B2C_1_profileediting1 (or your profile editing flow name)"
 
     # Secret env vars
     export B2C_CLIENT_ID="<replace with client id of B2C application>"
@@ -55,14 +56,14 @@ A fork of [crawl](https://github.com/crawl/crawl.git) to explore the feasibility
 
 * Set up a Python virtualenv. From ./crawl-ref/source/
 
-    ```sh
+    ```shell
     sudo apt install python3-pip
     pip install virtualenv
     python3 -m virtualenv -p python3 webserver/venv
     . ./webserver/venv/bin/activate
     pip install -r webserver/requirements/dev.py3.txt
     pip install azure-identity azure-keyvault-secrets msal
-    ``
+    ```
 
 ## Problems to solve
 
