@@ -38,6 +38,10 @@ function (exports, $, key_conversion, chat, comm) {
             window.console.log(text);
     }
 
+    function oauth_login() {
+        parent.window.opener($("oauth_login_link_anchor").attr('href'))
+    }
+
     function handle_message(msg)
     {
         if (typeof msg === "string")
@@ -1542,6 +1546,8 @@ function (exports, $, key_conversion, chat, comm) {
                 return "Really save and quit the game?";
             }
         });
+
+        $("#oauth_login_link_anchor").click(oauth_login);
 
         $(".hide_dialog").click(hide_dialog);
 
