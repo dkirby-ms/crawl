@@ -105,7 +105,7 @@ class MainHandler(SessionBaseHandler):
     
         # AAD_B2C addition and edits
         if config.use_oauth:
-            if "flow" in self.session:
+            if "flow" in self.session and "idtoken" in self.session:
                 username = self.session["idtoken"][0]
                 auth.log_in_as_user(self, username)
                 authUrlHtml = ""
