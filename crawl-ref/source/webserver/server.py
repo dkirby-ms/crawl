@@ -142,7 +142,6 @@ class AuthorizeHandler(SessionBaseHandler):
                 self.session["flow"], convert(self.request.arguments))
             # if "error" in result:
             #     return render_template("auth_error.html", result=result)
-            
             registerOrSigninOauthUser(self, result.get("id_token_claims"))
             aad_b2c._save_cache(self, cache)
             self.redirect("/")
@@ -150,14 +149,14 @@ class AuthorizeHandler(SessionBaseHandler):
             logging.error("Authorization error on OAuth redirect: " + Exception.with_traceback())
             pass  # Add login to throw token error page
 
-class LogoutHandler(tornado.web.RequestHandler):
+class LogoutHandler(SessionBaseHandler):
     def get(self):
         host = self.request.host
         if self.request.protocol == "https" or self.request.headers.get("x-forwarded-proto") == "https":
             protocol = "wss://"
         else:
             protocol = "ws://"
-        self.redirect("/")
+        logoutUser(self)
 
 def registerOrSigninOauthUser(handler, idtoken):
     if userdb.get_user_info(idtoken["extension_Crawlhandle"]) is not None:
@@ -167,6 +166,12 @@ def registerOrSigninOauthUser(handler, idtoken):
         logging.info("Registering new OAuth user " + idtoken["extension_Crawlhandle"])
         userdb.register_user(idtoken["extension_Crawlhandle"], lookupPassword(), idtoken["emails"][0]) # DK - need to solve for passwords
     handler.session["idtoken"] = ( idtoken["extension_Crawlhandle"], datetime.now() )
+
+def logoutUser(handler):
+    handler.session.delete("flow")
+    handler.session.delete("idtoken")
+    logoutUrl = aad_b2c.AUTHORITY + "/oauth2/v2.0/logout" + "?post_logout_redirect_uri=" + os.getenv("URLBASE")
+    handler.redirect(logoutUrl)
     
 def lookupPassword():
     keyVaultName = os.environ["KV_NAME"]
