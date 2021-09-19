@@ -62,11 +62,11 @@ A fork of [crawl](https://github.com/crawl/crawl.git) to explore the feasibility
     python3 -m virtualenv -p python3 webserver/venv
     . ./webserver/venv/bin/activate
     pip install -r webserver/requirements/dev.py3.txt
-    pip install azure-identity azure-keyvault-secrets msal
+    pip install azure-identity azure-keyvault-secrets msal torndsession redis
     ```
 
 ## Problems to solve
 
-* Open auth in popup instead of parent.relocate()
+* Logout url doesnt work
 
-* finish session management rework
+* Sign in link still visible after signin

@@ -38,11 +38,6 @@ function (exports, $, key_conversion, chat, comm) {
             window.console.log(text);
     }
 
-    function oauth_login() {
-        // TODO: how can we open a popup based on the b2c_auth endpoint then redirect back to parent?
-        parent.window.opener($("oauth_login_link_anchor").attr('href'))
-    }
-
     function handle_message(msg)
     {
         if (typeof msg === "string")
@@ -488,7 +483,7 @@ function (exports, $, key_conversion, chat, comm) {
         $('#chem_link').show();
         $('#chpw_link').show();
         $("#logout_link").show();
-        $("#oauth_login_link").hide(); // Oauth support addition
+
         chat.reset_visibility(true);
         $("#chat_input").show();
         $("#chat_login_text").hide();
@@ -532,8 +527,7 @@ function (exports, $, key_conversion, chat, comm) {
         admin_user = false;
         $("#admin_panel_button").hide();
         $("#admin_panel").hide();
-        // location.reload(); commented out for Oauth support
-        location.replace('https://ckzcrawl.b2clogin.com/ckzcrawl.onmicrosoft.com/B2C_1_signupsignin/oauth2/v2.0/logout?post_logout_redirect_uri=http://localhost:8080/logout')
+        location.reload();
     }
 
     function toggle_admin_panel()
@@ -1548,8 +1542,6 @@ function (exports, $, key_conversion, chat, comm) {
             }
         });
 
-        $("#oauth_login_link_anchor").click(oauth_login);
-
         $(".hide_dialog").click(hide_dialog);
 
         $("#login_form").bind("submit", login);
@@ -1623,7 +1615,7 @@ function (exports, $, key_conversion, chat, comm) {
             {
                 window.onhashchange = hash_changed;
 
-                // start_login(); // AADB2C - dont need to do this since we no longer use original token logins 
+                start_login();
 
                 current_hash = null;
                 hash_changed();
