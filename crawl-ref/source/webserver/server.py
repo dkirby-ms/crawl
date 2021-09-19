@@ -108,19 +108,18 @@ class MainHandler(SessionBaseHandler):
             if "flow" in self.session:
                 username = self.session["idtoken"][0]
                 auth.log_in_as_user(self, username)
+                authUrlHtml = ""
                 self.render("client.html", socket_server = protocol + host + "/socket",
                     username = None, config = config,
                     reset_token = recovery_token, reset_token_error = recovery_token_error,
-                    auth_url = self.session["flow"]["auth_uri"], version=msal.__version__)
-                # usersocket = find_user_sockets(username)
-                # for socket in usersocket:
-                #     socket.send_message("logged_in", cookie = cookie, expires = config.login_token_lifetime)
+                    auth_url = authUrlHtml, version=msal.__version__)
             else:
                 self.session["flow"] = aad_b2c._build_auth_code_flow(scopes=aad_b2c.SCOPE)
+                authUrlHtml = "<a id=\"oauth_login_link_anchor\" href=\"" + self.session["flow"]["auth_uri"] + "\">Sign In</a>"
                 self.render("client.html", socket_server = protocol + host + "/socket",
                     username = None, config = config,
                     reset_token = recovery_token, reset_token_error = recovery_token_error,
-                    auth_url = self.session["flow"]["auth_uri"], version=msal.__version__)
+                    auth_url = authUrlHtml, version=msal.__version__)
    
         else:
             self.render("client.html", socket_server = protocol + host + "/socket",
