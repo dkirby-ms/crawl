@@ -35,9 +35,8 @@ def log_in_as_user(request, username):
     login_tokens[(token, username)] = expires
     cookie = username + "%20" + str(token)
     if not isinstance(request, tornado.websocket.WebSocketHandler):
-        request.set_cookie("login", cookie)
+       request.set_cookie("login", cookie)
     return cookie
-
 
 def _parse_login_cookie(cookie):
     username, _, token = cookie.partition(' ')

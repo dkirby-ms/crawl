@@ -10,6 +10,7 @@ import zlib
 
 import tornado.ioloop
 import tornado.template
+from tornado.web import Application
 import tornado.websocket
 from tornado.escape import json_decode
 from tornado.escape import json_encode
@@ -291,6 +292,13 @@ class CrawlWebSocket(tornado.websocket.WebSocketHandler):
                 self.send_lobby()
             else:
                 self.start_crawl(None)
+        
+        if config.use_oauth:
+            try: 
+                if self.application.session_container[self.cookies['torndsession-mem'].coded_value]['idtoken'][0]:
+                    self.do_login(self.application.session_container[self.cookies['torndsession-mem'].coded_value]['idtoken'][0])
+            except KeyError:
+                pass
 
     def check_origin(self, origin):
         return True
