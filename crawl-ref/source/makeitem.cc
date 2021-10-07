@@ -361,6 +361,8 @@ bool is_weapon_brand_ok(int type, int brand, bool /*strict*/)
 #endif
 
     case SPWPN_CONFUSE:
+    case SPWPN_WEAKNESS:
+    case SPWPN_VULNERABILITY:
     case SPWPN_FORBID_BRAND:
     case SPWPN_DEBUG_RANDART:
     case NUM_SPECIAL_WEAPONS:
@@ -696,7 +698,7 @@ static void _generate_missile_item(item_def& item, int force_type,
 #endif
         )
     {
-        item.quantity = random_range(2, 8);
+        item.quantity = random_range(2, 6);
     }
     else
     {

@@ -143,7 +143,6 @@ enum monster_info_flags
     MB_VORTEX_COOLDOWN,
     MB_BARBS,
     MB_POISON_VULN,
-    MB_ICEMAIL,
     MB_AGILE,
     MB_FROZEN,
     MB_BLACK_MARK,
@@ -340,7 +339,7 @@ struct monster_info : public monster_info_base
 
     string constriction_description() const;
 
-    monster_type draco_or_demonspawn_subspecies() const;
+    monster_type draconian_subspecies() const;
 
     mon_intel_type intel() const
     {
@@ -372,7 +371,7 @@ struct monster_info : public monster_info_base
 
     bool wields_two_weapons() const;
     bool can_regenerate() const;
-    reach_type reach_range() const;
+    reach_type reach_range(bool items = true) const;
 
     size_type body_size() const;
 

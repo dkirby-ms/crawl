@@ -490,7 +490,7 @@ static const mutation_def mut_data[] =
 
   {"You feel your surroundings grow quieter.", "", ""},
 
-  {"You feel your surroundings grow louder", "", ""},
+  {"You feel your surroundings grow louder.", "", ""},
 },
 
 { MUT_CLARITY, 6, 1, mutflag::good, false,
@@ -1746,6 +1746,34 @@ static const mutation_def mut_data[] =
 
   {"You punish those that try to bend your will. (Will+)", "", ""},
   {"You feel willful.", "", ""},
+  {"", "", ""},
+},
+
+{ MUT_WEAKNESS_STINGER, 0, 3, mutflag::good, true,
+  "weakness stinger",
+
+  {"You have a small tail.",
+   "You have a tail ending in a sharp stinger.",
+   "You have a sharp stinger which inflicts weakening toxins."},
+
+  {"You grow a small tail.",
+   "Your tail grows a sharp stinger.",
+   "Your stinger grows larger and begins to produce weakening toxins."},
+
+  {"", "", ""},
+},
+
+{ MUT_DEMONIC_TOUCH, 0, 3, mutflag::good, true,
+  "demonic touch",
+
+  {"Your touch may inflict minor irresistible damage on your foes.",
+   "Your touch may inflict irresistible damage on your foes.",
+   "Your touch may irresistibly damage your foes and sap their willpower."},
+
+  {"Your hands begin to faintly glow with unholy energy.",
+   "Your hands glow brighter with unholy energy.",
+   "Your hands twist and begin to emit a powerful aura of unholy energy."},
+
   {"", "", ""},
 },
 

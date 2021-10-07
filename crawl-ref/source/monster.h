@@ -151,6 +151,7 @@ public:
         override;
     bool is_perm_summoned() const override;
     bool has_action_energy() const;
+    void drain_action_energy();
     void check_redraw(const coord_def &oldpos, bool clear_tiles = true) const;
     void apply_location_effects(const coord_def &oldpos,
                                 killer_type killer = KILL_NONE,
@@ -203,8 +204,8 @@ public:
     bool del_ench(enchant_type ench, bool quiet = false, bool effect = true);
     bool lose_ench_duration(const mon_enchant &e, int levels);
     bool lose_ench_levels(const mon_enchant &e, int lev, bool infinite = false);
-    void lose_energy(energy_use_type et, int div = 1, int mult = 1) override;
-    void gain_energy(energy_use_type et, int div = 1, int mult = 1) override;
+    void lose_energy(energy_use_type et, int div = 1, int mult = 1);
+    int energy_cost(energy_use_type et, int div = 1, int mult = 1);
 
     void scale_hp(int num, int den);
     bool gain_exp(int exp, int max_levels_to_gain = 2);
@@ -373,6 +374,7 @@ public:
 
     mon_holy_type holiness(bool /*temp*/ = true) const override;
     bool undead_or_demonic(bool /*temp*/ = true) const override;
+    bool evil() const override;
     bool is_holy() const override;
     bool is_nonliving(bool /*temp*/ = true) const override;
     int how_unclean(bool check_god = true) const;

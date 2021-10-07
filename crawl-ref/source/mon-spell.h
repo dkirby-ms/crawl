@@ -1082,12 +1082,6 @@ static const mon_spellbook mspell_list[] =
       }
     },
 
-    {  MST_IRONBOUND_BEASTMASTER,
-      {
-       { SPELL_GOAD_BEASTS, 40, MON_SPELL_NATURAL },
-      }
-    },
-
     // ('P') Immobile plants.
     {  MST_BURNING_BUSH,
       {
@@ -1468,7 +1462,7 @@ static const mon_spellbook mspell_list[] =
     {  MST_DEMONSPAWN_CORRUPTER,
       {
        { SPELL_PLANEREND, 40, MON_SPELL_PRIEST },
-       { SPELL_CORRUPTING_PULSE, 20, MON_SPELL_PRIEST },
+       { SPELL_ENTROPIC_WEAVE, 20, MON_SPELL_PRIEST },
       }
     },
 

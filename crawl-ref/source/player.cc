@@ -1621,11 +1621,11 @@ int player_spec_air()
     // Staves
     sa += you.wearing(EQ_STAFF, STAFF_AIR);
 
-    if (player_equip_unrand(UNRAND_ELEMENTAL_STAFF)
-        || player_equip_unrand(UNRAND_AIR))
-    {
+    if (player_equip_unrand(UNRAND_ELEMENTAL_STAFF))
         sa++;
-    }
+
+    if (player_equip_unrand(UNRAND_AIR))
+        sa++;
 
     return sa;
 }
@@ -6054,15 +6054,6 @@ mon_holy_type player::holiness(bool temp) const
         holi = MH_NONLIVING;
     }
 
-    if (is_good_god(religion))
-        holi |= MH_HOLY;
-
-    if (is_evil_god(religion)
-        || species == SP_DEMONSPAWN || you.has_mutation(MUT_VAMPIRISM))
-    {
-        holi |= MH_EVIL;
-    }
-
     // possible XXX: Monsters get evil/unholy bits set on spell selection
     //  should players?
     return holi;
@@ -6075,9 +6066,17 @@ bool player::undead_or_demonic(bool temp) const
     return undead_state(temp) || species == SP_DEMONSPAWN;
 }
 
+bool player::evil() const
+{
+    return is_evil_god(religion)
+        || species == SP_DEMONSPAWN
+        || you.has_mutation(MUT_VAMPIRISM)
+        || actor::evil();
+}
+
 bool player::is_holy() const
 {
-    return bool(holiness() & MH_HOLY);
+    return bool(holiness() & MH_HOLY) || is_good_god(religion);
 }
 
 bool player::is_nonliving(bool temp) const
@@ -6202,6 +6201,11 @@ bool player::res_torment() const
     return get_form()->res_neg() == 3
            || you.has_mutation(MUT_VAMPIRISM) && !you.vampire_alive
            || you.petrified()
+    // This should probably be (you.holiness & MH_PLANT), but treeform
+    // doesn't currently make you a plant, and I suspect changing that
+    // would cause other bugs. (For example, being able to wield holy
+    // weapons as a demonspawn & keep them while untransformed?)
+           || you.form == transformation::tree
 #if TAG_MAJOR_VERSION == 34
            || player_equip_unrand(UNRAND_ETERNAL_TORMENT)
 #endif
@@ -6811,7 +6815,8 @@ bool player::has_tail(bool allow_tran) const
         || has_mutation(MUT_CONSTRICTING_TAIL, allow_tran)
         || fishtail // XX respect allow_tran
         || get_mutation_level(MUT_ARMOURED_TAIL, allow_tran)
-        || get_mutation_level(MUT_STINGER, allow_tran))
+        || get_mutation_level(MUT_STINGER, allow_tran)
+        || get_mutation_level(MUT_WEAKNESS_STINGER, allow_tran))
     {
         return 1;
     }
@@ -7159,7 +7164,8 @@ bool player::can_feel_fear(bool include_unknown) const
 {
     // XXX: monsters are immune to fear when berserking.
     // should players also be?
-    return you.holiness() & MH_NATURAL && (!include_unknown || !you.clarity());
+    return you.holiness() & (MH_NATURAL | MH_DEMONIC | MH_HOLY)
+           && (!include_unknown || !you.clarity());
 }
 
 bool player::can_throw_large_rocks() const

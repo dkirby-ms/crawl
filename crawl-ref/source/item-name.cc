@@ -421,6 +421,8 @@ static const char *weapon_brands_terse[] =
 #if TAG_MAJOR_VERSION > 34
     "confuse",
 #endif
+    "weak",
+    "vuln",
     "debug",
 };
 
@@ -446,6 +448,8 @@ static const char *weapon_brands_verbose[] =
 #if TAG_MAJOR_VERSION > 34
     "confusion",
 #endif
+    "weakness",
+    "vulnerability",
     "debug",
 };
 
@@ -471,6 +475,8 @@ static const char *weapon_brands_adj[] =
 #if TAG_MAJOR_VERSION > 34
     "confusing",
 #endif
+    "weakening",
+    "will-reducing"
     "debug",
 };
 
@@ -2963,8 +2969,7 @@ bool is_useless_item(const item_def &item, bool temp, bool ident)
 
         case AMU_FAITH:
             return (you.has_mutation(MUT_FORLORN) && !you.religion) // ??
-                    || you_worship(GOD_GOZAG) || you_worship(GOD_ASHENZARI)
-                    || (you_worship(GOD_RU) && you.piety == piety_breakpoint(5));
+                    || !ignore_faith_reason().empty();
 
         case AMU_GUARDIAN_SPIRIT:
             return you.spirit_shield(false, false) || you.has_mutation(MUT_HP_CASTING);

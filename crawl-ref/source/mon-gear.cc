@@ -413,25 +413,13 @@ int make_mons_weapon(monster_type type, int level, bool melee_only)
         { WPN_RAPIER,           1 },
         { WPN_DEMON_WHIP,       1 },
         { WPN_FLAIL,            1 } };
-    // Demonspawn probably want to use weapons close to the "natural"
-    // demon weapons - demon blades, demon whips, and demon tridents.
-    // So pick from a selection of good weapons from those classes
-    // with a 2/5 chance in each category of having the demon weapon.
-    // XXX: this is so ridiculously overengineered
     static const weapon_list DS_WEAPONS =
-    {   { WPN_LONG_SWORD,       10 },
-        { WPN_SCIMITAR,         10 },
-        { WPN_GREAT_SWORD,      10 },
-        { WPN_DEMON_BLADE,      20 },
-        { WPN_MACE,             10 },
-        { WPN_MORNINGSTAR,      8 },
-        { WPN_EVENINGSTAR,      2 },
-        { WPN_DIRE_FLAIL,       10 },
-        { WPN_DEMON_WHIP,       20 },
-        { WPN_TRIDENT,          10 },
-        { WPN_HALBERD,          10 },
-        { WPN_GLAIVE,           10 },
-        { WPN_DEMON_TRIDENT,    20 } };
+    {   { WPN_GREAT_SWORD,      3 },
+        { WPN_DEMON_BLADE,      2 },
+        { WPN_DIRE_FLAIL,       3 },
+        { WPN_DEMON_WHIP,       2 },
+        { WPN_GLAIVE,           3 },
+        { WPN_DEMON_TRIDENT,    2 } };
     static const weapon_list GARGOYLE_WEAPONS =
     {   { WPN_MACE,             15 },
         { WPN_FLAIL,            10 },
@@ -643,11 +631,6 @@ int make_mons_weapon(monster_type type, int level, bool melee_only)
         } } },
         { MONS_TWO_HEADED_OGRE,         { DOUBLE_OGRE_WEAPONS } },
         { MONS_IRON_GIANT,              { DOUBLE_OGRE_WEAPONS } },
-        { MONS_IRONBOUND_BEASTMASTER,
-            { { { WPN_WHIP,             5 },
-                { WPN_QUARTERSTAFF,     4 },
-                { WPN_DEMON_WHIP,       1 },
-        } } },
         { MONS_IRONBOUND_THUNDERHULK,
             { { { WPN_DIRE_FLAIL,       9 },
                 { WPN_GREAT_MACE,       1 },
@@ -870,16 +853,13 @@ int make_mons_weapon(monster_type type, int level, bool melee_only)
               { NUM_SPECIAL_WEAPONS, 1 } },
             1,
         } },
-        { MONS_INFERNAL_DEMONSPAWN,     { DS_WEAPONS } },
-        { MONS_GELID_DEMONSPAWN,        { DS_WEAPONS } },
-        { MONS_TORTUROUS_DEMONSPAWN,    { DS_WEAPONS } },
-        { MONS_CORRUPTER,               { DS_WEAPONS } },
-        { MONS_BLACK_SUN,               { DS_WEAPONS } },
-        { MONS_BLOOD_SAINT, {
+        { MONS_DEMONSPAWN_CORRUPTER,   { DS_WEAPONS } },
+        { MONS_DEMONSPAWN_BLACK_SUN,   { DS_WEAPONS } },
+        { MONS_DEMONSPAWN_BLOOD_SAINT, {
             { { WPN_DAGGER,             4 },
               { WPN_QUARTERSTAFF,       1 } },
         } },
-        { MONS_WARMONGER, {
+        { MONS_DEMONSPAWN_WARMONGER, {
             { { WPN_DEMON_BLADE,        10 },
               { WPN_DEMON_WHIP,         10 },
               { WPN_DEMON_TRIDENT,      10 },
@@ -983,7 +963,7 @@ int make_mons_weapon(monster_type type, int level, bool melee_only)
               { WPN_SHORTBOW,                   5 }, },
             { 4, 0, 4 },
         } },
-        { MONS_WARMONGER, {
+        { MONS_DEMONSPAWN_WARMONGER, {
             { { WPN_LONGBOW,                    10 }, // total 60
               { WPN_ARBALEST,                   9 },
               { WPN_TRIPLE_CROSSBOW,            1 },
@@ -1415,7 +1395,7 @@ static void _give_ammo(monster* mon, int level, bool mons_summoned)
                     player_in_branch(BRANCH_ORC)? 9 : 20))
             {
                 weap_type = MI_BOOMERANG;
-                qty       = random_range(4, 8);
+                qty       = random_range(1, 3);
             }
             break;
 
@@ -1423,7 +1403,7 @@ static void _give_ammo(monster* mon, int level, bool mons_summoned)
             if (one_chance_in(20))
             {
                 weap_type = MI_BOOMERANG;
-                qty       = random_range(2, 5);
+                qty       = random_range(1, 3);
             }
             break;
 
@@ -1447,7 +1427,9 @@ static void _give_ammo(monster* mon, int level, bool mons_summoned)
         case MONS_MERFOLK_JAVELINEER:
         case MONS_MINOTAUR:
             weap_type  = MI_JAVELIN;
-            qty        = random_range(5, 12);
+            qty        = random_range(1, 3);
+            if (mon->type == MONS_MINOTAUR)
+                qty += random_range(1, 5);
             if (one_chance_in(3))
                 level = ISPEC_GOOD_ITEM;
             break;
@@ -1457,7 +1439,7 @@ static void _give_ammo(monster* mon, int level, bool mons_summoned)
                 || active_monster_band == BAND_MERFOLK_JAVELINEER)
             {
                 weap_type  = MI_BOOMERANG;
-                qty        = random_range(4, 8);
+                qty        = random_range(1, 3);
                 if (active_monster_band == BAND_MERFOLK_JAVELINEER)
                     break;
             }
@@ -1472,11 +1454,7 @@ static void _give_ammo(monster* mon, int level, bool mons_summoned)
 
         case MONS_DRACONIAN_KNIGHT:
         case MONS_GNOLL:
-            if (!level || coinflip())
-                break;
-            // deliberate fall-through
-        case MONS_IRONBOUND_BEASTMASTER:
-            if (!one_chance_in(10))
+            if (!level || !one_chance_in(20))
                 break;
             // deliberate fall-through to harold
 
@@ -1680,8 +1658,8 @@ static void _give_shield(monster* mon, int level)
                               level * 2 + 1, 1);
         break;
 
-    case MONS_CORRUPTER:
-    case MONS_BLACK_SUN:
+    case MONS_DEMONSPAWN_CORRUPTER:
+    case MONS_DEMONSPAWN_BLACK_SUN:
         if (one_chance_in(3))
         {
             armour_type shield_type = random_choose(ARM_BUCKLER, ARM_KITE_SHIELD);
@@ -1689,7 +1667,7 @@ static void _give_shield(monster* mon, int level)
         }
         break;
 
-    case MONS_WARMONGER:
+    case MONS_DEMONSPAWN_WARMONGER:
         make_item_for_monster(mon, OBJ_ARMOUR,
                               random_choose(ARM_TOWER_SHIELD, ARM_KITE_SHIELD),
                               ISPEC_GOOD_ITEM);
@@ -1806,7 +1784,6 @@ int make_mons_armour(monster_type type, int level)
 
     case MONS_GRUM:
     case MONS_SPRIGGAN_BERSERKER:
-    case MONS_IRONBOUND_BEASTMASTER:
         item.base_type = OBJ_ARMOUR;
         item.sub_type  = ARM_ANIMAL_SKIN;
         break;
@@ -2097,12 +2074,8 @@ int make_mons_armour(monster_type type, int level)
         item.sub_type  = ARM_CLOAK;
         break;
 
-    case MONS_MONSTROUS_DEMONSPAWN:
-    case MONS_GELID_DEMONSPAWN:
-    case MONS_INFERNAL_DEMONSPAWN:
-    case MONS_TORTUROUS_DEMONSPAWN:
-    case MONS_CORRUPTER:
-    case MONS_BLACK_SUN:
+    case MONS_DEMONSPAWN_CORRUPTER:
+    case MONS_DEMONSPAWN_BLACK_SUN:
         item.base_type = OBJ_ARMOUR;
         item.sub_type  = random_choose_weighted(2, ARM_LEATHER_ARMOUR,
                                                 3, ARM_RING_MAIL,
@@ -2111,14 +2084,14 @@ int make_mons_armour(monster_type type, int level)
                                                 2, ARM_PLATE_ARMOUR);
         break;
 
-    case MONS_BLOOD_SAINT:
+    case MONS_DEMONSPAWN_BLOOD_SAINT:
         if (one_chance_in(3))
             level = ISPEC_GOOD_ITEM;
         item.base_type = OBJ_ARMOUR;
         item.sub_type  = ARM_ROBE;
         break;
 
-    case MONS_WARMONGER:
+    case MONS_DEMONSPAWN_WARMONGER:
         if (coinflip())
             level = ISPEC_GOOD_ITEM;
         item.base_type = OBJ_ARMOUR;

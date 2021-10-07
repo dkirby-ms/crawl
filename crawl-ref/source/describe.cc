@@ -577,7 +577,7 @@ static string _randart_descrip(const item_def &item)
         { ARTP_CAUSE_TELEPORTATION, "It may teleport you next to monsters.", false},
         { ARTP_PREVENT_TELEPORTATION, "It prevents most forms of teleportation.",
           false},
-        { ARTP_ANGRY,  "It lets you go berserk by making a melee attack (%d% chance).", false},
+        { ARTP_ANGRY,  "It berserks you when you make melee attacks (%d% chance).", false},
         { ARTP_CLARITY, "It protects you against confusion.", false},
         { ARTP_CONTAM, "It causes magical contamination when unequipped.", false},
         { ARTP_RMSL, "It protects you from missiles.", false},
@@ -3364,6 +3364,27 @@ static void _get_spell_description(const spell_type spell,
 
     if (mon_owner)
     {
+        if (spell == SPELL_CONJURE_LIVING_SPELLS)
+        {
+            const spell_type living_spell = living_spell_type_for(mon_owner->type);
+            description += make_stringf("\n%s creates living %s spells.\n",
+                                        uppercase_first(mon_owner->full_name(DESC_A)).c_str(),
+                                        spell_title(living_spell));
+        }
+        else if (spell == SPELL_QUICKSILVER_BOLT)
+        {
+            if (player_is_debuffable())
+            {
+                description += make_stringf("\nIf you are struck by this,"
+                                            " you will no longer be %s.\n",
+                                            describe_player_cancellation(true).c_str());
+            }
+            else
+                description += "\nYou currently have no enchantments that could be"
+                               " removed by this.\n";
+
+        }
+
         const int hd = mon_owner->spell_hd();
         const int range = mons_spell_range_for_hd(spell, hd);
         description += "\nRange : ";
@@ -3379,7 +3400,7 @@ static void _get_spell_description(const spell_type spell,
         {
             description += make_stringf("%s can sustain at most %s creature%s "
                                "summoned by this spell.\n",
-                               mon_owner->full_name(DESC_PLAIN).c_str(),
+                               uppercase_first(mon_owner->full_name(DESC_THE)).c_str(),
                                number_in_words(limit).c_str(),
                                limit > 1 ? "s" : "");
         }
@@ -3540,7 +3561,7 @@ void describe_deck(deck_type deck)
 static string _describe_draconian(const monster_info& mi)
 {
     string description;
-    const int subsp = mi.draco_or_demonspawn_subspecies();
+    const int subsp = mi.draconian_subspecies();
 
     if (subsp != mi.type)
     {
@@ -3596,59 +3617,6 @@ static string _describe_draconian(const monster_info& mi)
     return description;
 }
 
-static string _describe_demonspawn_role(monster_type type)
-{
-    switch (type)
-    {
-    case MONS_BLOOD_SAINT:
-        return "It weaves powerful and unpredictable spells of devastation.";
-    case MONS_WARMONGER:
-        return "It is devoted to combat, disrupting the magic of its foes as "
-               "it battles endlessly.";
-    case MONS_CORRUPTER:
-        return "It corrupts space around itself, and can twist even the very "
-               "flesh of its opponents.";
-    case MONS_BLACK_SUN:
-        return "It shines with an unholy radiance, and wields powers of "
-               "darkness from its devotion to the deities of death.";
-    default:
-        return "";
-    }
-}
-
-static string _describe_demonspawn_base(int species)
-{
-    switch (species)
-    {
-    case MONS_MONSTROUS_DEMONSPAWN:
-        return "It is more beast now than whatever species it is descended from.";
-    case MONS_GELID_DEMONSPAWN:
-        return "It is covered in icy armour.";
-    case MONS_INFERNAL_DEMONSPAWN:
-        return "It gives off an intense heat.";
-    case MONS_TORTUROUS_DEMONSPAWN:
-        return "It oozes dark energies.";
-    }
-    return "";
-}
-
-static string _describe_demonspawn(const monster_info& mi)
-{
-    string description;
-    const int subsp = mi.draco_or_demonspawn_subspecies();
-
-    description += _describe_demonspawn_base(subsp);
-
-    if (subsp != mi.type)
-    {
-        const string demonspawn_role = _describe_demonspawn_role(mi.type);
-        if (!demonspawn_role.empty())
-            description += " " + demonspawn_role;
-    }
-
-    return description;
-}
-
 static const char* _get_resist_name(mon_resist_flags res_type)
 {
     switch (res_type)
@@ -3673,6 +3641,8 @@ static const char* _get_resist_name(mon_resist_flags res_type)
         return "damnation";
     case MR_RES_VORTEX:
         return "polar vortices";
+    case MR_RES_TORMENT:
+        return "torment";
     default:
         return "buggy resistance";
     }
@@ -3899,13 +3869,15 @@ static string _monster_attacks_description(const monster_info& mi)
             continue;
         }
 
+        int dam = attack.damage;
+
         // Damage is listed in parentheses for attacks with a flavour
         // description, but not for plain attacks.
         bool has_flavour = !_flavour_base_desc(attack.flavour).empty();
         const string damage_desc =
             make_stringf("%sfor up to %d damage%s%s%s",
                          has_flavour ? "(" : "",
-                         attack.damage,
+                         dam,
                          attack_count.second > 1 ? " each" : "",
                          weapon_note.c_str(),
                          has_flavour ? ")" : "");
@@ -3928,6 +3900,12 @@ static string _monster_attacks_description(const monster_info& mi)
                                                   "; and ", "; ");
         _describe_mons_to_hit(mi, result);
         result << ".\n";
+    }
+
+    if (mons_class_flag(mi.type, M_ARCHER))
+    {
+        result << make_stringf("It can deal up to %d extra damage when attacking with ranged weaponry.\n",
+                                archer_bonus_damage(mi.hd));
     }
 
     if (mi.type == MONS_ROYAL_JELLY)
@@ -4229,9 +4207,11 @@ static void _describe_monster_wl(const monster_info& mi, ostringstream &result)
  */
 string _monster_habitat_description(const monster_info& mi)
 {
-    const monster_type type = mons_is_job(mi.type)
-                              ? mi.draco_or_demonspawn_subspecies()
+    const monster_type type = mons_is_draconian_job(mi.type)
+                              ? mi.draconian_subspecies()
                               : mi.type;
+    if (mons_class_is_stationary(type))
+        return "";
 
     switch (mons_habitat_type(type, mi.base_type))
     {
@@ -4333,7 +4313,7 @@ static string _monster_stat_description(const monster_info& mi)
         MR_RES_ELEC,    MR_RES_POISON, MR_RES_FIRE,
         MR_RES_STEAM,   MR_RES_COLD,   MR_RES_ACID,
         MR_RES_MIASMA,  MR_RES_NEG,    MR_RES_DAMNATION,
-        MR_RES_VORTEX,
+        MR_RES_VORTEX,  MR_RES_TORMENT,
     };
 
     vector<string> extreme_resists;
@@ -4348,8 +4328,12 @@ static string _monster_stat_description(const monster_info& mi)
         if (level != 0)
         {
             const char* attackname = _get_resist_name(rflags);
-            if (rflags == MR_RES_DAMNATION || rflags == MR_RES_VORTEX)
+            if (rflags == MR_RES_DAMNATION
+                || rflags == MR_RES_VORTEX
+                || rflags == MR_RES_TORMENT)
+            {
                 level = 3; // one level is immunity
+            }
             level = max(level, -1);
             level = min(level,  3);
             switch (level)
@@ -4732,19 +4716,6 @@ void get_monster_db_desc(const monster_info& mi, describe_info &inf,
     case MONS_DRACONIAN_KNIGHT:
     {
         inf.body << "\n" << _describe_draconian(mi) << "\n";
-        break;
-    }
-
-    case MONS_MONSTROUS_DEMONSPAWN:
-    case MONS_GELID_DEMONSPAWN:
-    case MONS_INFERNAL_DEMONSPAWN:
-    case MONS_TORTUROUS_DEMONSPAWN:
-    case MONS_BLOOD_SAINT:
-    case MONS_WARMONGER:
-    case MONS_CORRUPTER:
-    case MONS_BLACK_SUN:
-    {
-        inf.body << "\n" << _describe_demonspawn(mi) << "\n";
         break;
     }
 

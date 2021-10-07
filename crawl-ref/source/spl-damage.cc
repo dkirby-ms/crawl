@@ -564,8 +564,11 @@ static void _player_hurt_monster(monster &mon, int damage, beam_type flavour,
 
 static bool _drain_lifeable(const actor* agent, const actor* act)
 {
-    if (act->res_negative_energy() >= 3)
+    if (!actor_is_susceptible_to_vampirism(*act)
+        || act->res_negative_energy() >= 3)
+    {
         return false;
+    }
 
     if (!agent)
         return true;
@@ -966,7 +969,8 @@ int airstrike_space_around(coord_def target, bool count_unseen)
         {
             if (!actor_at(*ai))
                 ++empty_space;
-        } else if (you.pos() != *ai && !env.map_knowledge(*ai).monsterinfo())
+        }
+        else if (you.pos() != *ai && !env.map_knowledge(*ai).monsterinfo())
             ++empty_space;
     }
 
@@ -1098,13 +1102,13 @@ static const map<monster_type, monster_frag> fraggable_monsters = {
     { MONS_IRON_GOLEM,        { "metal", CYAN, frag_damage_type::metal } },
     { MONS_PEACEKEEPER,       { "metal", CYAN, frag_damage_type::metal } },
     { MONS_WAR_GARGOYLE,      { "metal", CYAN, frag_damage_type::metal } },
-    { MONS_CRYSTAL_GUARDIAN,  { "crystal", DARKGREY,
+    { MONS_CRYSTAL_GUARDIAN,  { "crystal", GREEN,
                                 frag_damage_type::crystal } },
-    { MONS_CRYSTAL_ECHIDNA,   { "crystal", LIGHTGREEN,
+    { MONS_CRYSTAL_ECHIDNA,   { "crystal", GREEN,
                                 frag_damage_type::crystal } },
     { MONS_ORANGE_STATUE,     { "orange crystal", LIGHTRED,
                                 frag_damage_type::crystal } },
-    { MONS_OBSIDIAN_STATUE,   { "obsidian", GREEN,
+    { MONS_OBSIDIAN_STATUE,   { "obsidian", MAGENTA,
                                 frag_damage_type::crystal } },
     { MONS_ROXANNE,           { "sapphire", BLUE, frag_damage_type::crystal } },
 };
@@ -1177,6 +1181,8 @@ static const map<dungeon_feature_type, feature_frag> fraggable_terrain = {
     { DNGN_RUNED_CLEAR_DOOR, { "rock", "stone door frame" } },
     { DNGN_SEALED_DOOR, { "rock", "stone door frame" } },
     { DNGN_SEALED_CLEAR_DOOR, { "rock", "stone door frame" } },
+    { DNGN_BROKEN_DOOR, { "rock", "stone door frame" } },
+    { DNGN_BROKEN_CLEAR_DOOR, { "rock", "stone door frame" } },
     { DNGN_STONE_ARCH, { "rock", "stone arch" } },
     // Metal -- small but nasty explosion
     { DNGN_METAL_WALL, { "metal", "metal wall", frag_damage_type::metal } },
@@ -3147,9 +3153,7 @@ void handle_flame_wave()
     if (lvl == 1) // just cast it this turn
         return;
 
-    if (crawl_state.prev_cmd != CMD_WAIT
-        || you.confused()
-        || you.berserk())
+    if (crawl_state.prev_cmd != CMD_WAIT || !can_cast_spells(true))
     {
         end_flame_wave();
         return;
@@ -3238,8 +3242,7 @@ void handle_searing_ray()
 
     ASSERT_RANGE(you.attribute[ATTR_SEARING_RAY], 1, 4);
 
-    // All of these effects interrupt a channeled ray
-    if (you.confused() || you.berserk())
+    if (!can_cast_spells(true))
     {
         end_searing_ray();
         return;
@@ -3929,8 +3932,7 @@ void handle_maxwells_coupling()
     if (!you.props.exists(COUPLING_TIME_KEY))
         return;
 
-    // All of these effects interrupt charging
-    if (you.confused() || you.berserk())
+    if (!can_cast_spells(true))
     {
         end_maxwells_coupling();
         return;

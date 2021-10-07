@@ -426,7 +426,10 @@ bool feat_is_closed_door(dungeon_feature_type feat)
  */
 bool feat_is_open_door(dungeon_feature_type feat)
 {
-    return feat == DNGN_OPEN_DOOR || feat == DNGN_OPEN_CLEAR_DOOR;
+    return feat == DNGN_OPEN_DOOR
+        || feat == DNGN_OPEN_CLEAR_DOOR
+        || feat == DNGN_BROKEN_DOOR
+        || feat == DNGN_BROKEN_CLEAR_DOOR;
 }
 
 /** Has this feature been sealed by a vault warden?
@@ -704,9 +707,6 @@ bool feat_is_mimicable(dungeon_feature_type feat, bool strict)
     if (feat == DNGN_ENTER_ZIGGURAT)
         return false;
 
-    if (feat_is_portal_entrance(feat))
-        return true;
-
     if (feat == DNGN_ENTER_SHOP)
         return true;
 
@@ -894,14 +894,15 @@ void slime_wall_damage(actor* act, int delay)
         mprf("You are splashed with acid%s%s",
              dam > 0 ? "" : " but take no damage",
              attack_strength_punctuation(dam).c_str());
+        ouch(dam, KILLED_BY_ACID, MID_NOBODY);
     }
     else if (dam > 0 && you.can_see(*act))
     {
         const char *verb = act->is_icy() ? "melt" : "burn";
         mprf((walls > 1) ? "The walls %s %s!" : "The wall %ss %s!",
               verb, act->name(DESC_THE).c_str());
+        act->hurt(nullptr, dam, BEAM_ACID);
     }
-    act->hurt(nullptr, dam, BEAM_ACID);
 }
 
 int count_adjacent_icy_walls(const coord_def &pos)
@@ -2363,7 +2364,9 @@ void dgn_close_door(const coord_def &dest)
     if (!feat_is_open_door(env.grid(dest)))
         return;
 
-    if (env.grid(dest) == DNGN_OPEN_CLEAR_DOOR)
+    // Yes, this fixes broken doors.
+    const auto feat = env.grid(dest);
+    if (feat == DNGN_OPEN_CLEAR_DOOR || feat == DNGN_BROKEN_CLEAR_DOOR)
         env.grid(dest) = DNGN_CLOSED_CLEAR_DOOR;
     else
         env.grid(dest) = DNGN_CLOSED_DOOR;
@@ -2387,6 +2390,26 @@ void dgn_open_door(const coord_def &dest)
     else
         env.grid(dest) = DNGN_OPEN_DOOR;
 }
+
+/** Breaks any door at the given position. Handles the grid change, but does not
+ * mark terrain or do any event handling.
+ *
+ * @param dest The location of the door.
+ */
+void dgn_break_door(const coord_def &dest)
+{
+    if (!feat_is_closed_door(env.grid(dest)))
+        return;
+
+    if (env.grid(dest) == DNGN_CLOSED_CLEAR_DOOR
+        || env.grid(dest) == DNGN_RUNED_CLEAR_DOOR)
+    {
+        env.grid(dest) = DNGN_BROKEN_CLEAR_DOOR;
+    }
+    else
+        env.grid(dest) = DNGN_BROKEN_DOOR;
+}
+
 
 void ice_wall_damage(monster &mons, int delay)
 {
