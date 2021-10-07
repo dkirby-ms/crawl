@@ -187,8 +187,8 @@ class CrawlWebSocket(tornado.websocket.WebSocketHandler):
 
         self.message_handlers = {
             "login": self.login,
-            "token_login": self.token_login,
-            "set_login_cookie": self.set_login_cookie,
+            # "token_login": self.token_login,
+            # "set_login_cookie": self.set_login_cookie,
             "forget_login_cookie": self.forget_login_cookie,
             "play": self.start_crawl,
             "pong": self.pong,
@@ -296,6 +296,7 @@ class CrawlWebSocket(tornado.websocket.WebSocketHandler):
         if config.use_oauth:
             try: 
                 if self.application.session_container[self.cookies['torndsession-mem'].coded_value]['idtoken'][0]:
+                    self.logger.info("User %s logging in from %s.", self.application.session_container[self.cookies['torndsession-mem'].coded_value]['idtoken'][0], self.request.remote_ip)
                     self.do_login(self.application.session_container[self.cookies['torndsession-mem'].coded_value]['idtoken'][0])
             except KeyError:
                 pass
